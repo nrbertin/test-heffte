@@ -56,7 +56,7 @@ struct FFTPlan<USE_FFTW> : FFTPlanBase {
         Nx = local_Nx = _Nx;
         Ny = local_Ny = _Ny;
         Nz = local_Nz = _Nz;
-        printf("Using FFTW SERIAL: %d x %d x %d\n", Nx, Ny, Nz);
+        if (rank_id == 0) printf("Using FFTW on %d rank(s): %d x %d x %d\n", num_ranks, Nx, Ny, Nz);
     }
     void finalize() {}
 };
@@ -96,7 +96,7 @@ struct FFTPlan<USE_CUFFT> : FFTPlanBase {
         local_Ny = Ny;
         local_Nz = Nz;
         cufftPlan3d(&plan, Nx, Ny, Nz, CUFFT_Z2Z);
-        printf("Using cuFFT SERIAL: %d x %d x %d\n", Nx, Ny, Nz);
+        if (rank_id == 0) printf("Using cuFFT on %d rank(s): %d x %d x %d\n", num_ranks, Nx, Ny, Nz);
     }
     void finalize() { cufftDestroy(plan); }
 };
@@ -134,7 +134,7 @@ struct FFTPlan<USE_HIPFFT> : FFTPlanBase {
         local_Ny = Ny;
         local_Nz = Nz;
         hipfftPlan3d(&plan, Nx, Ny, Nz, HIPFFT_Z2Z);
-        printf("Using hipFFT SERIAL: %d x %d x %d\n", Nx, Ny, Nz);
+        if (rank_id == 0) printf("Using hipFFT on %d rank(s): %d x %d x %d\n", num_ranks, Nx, Ny, Nz);
     }
     void finalize() { hipfftDestroy(plan); }
 };
@@ -194,7 +194,7 @@ struct FFTPlan<USE_HEFFTE> : FFTPlanBase {
             {local_kx_start+local_Nx-1, local_ky_start+local_Ny-1, local_kz_start+local_Nz-1}
         };
 
-        printf("Using HeFFTe (%s backend): %d x %d x %d\n", backend_name.c_str(), Nx, Ny, Nz);
+        if (rank_id == 0) printf("Using HeFFTe (%s backend) on %d rank(s): %d x %d x %d\n", backend_name.c_str(), num_ranks, Nx, Ny, Nz);
         //heffte::plan_options options = heffte::default_options<backend_tag>();
         fft = std::make_shared<heffte::fft3d<heffte_backend>>(box, box, MPI_COMM_WORLD/*, options*/);
         workspace = std::make_shared<heffte::fft3d<heffte_backend>::buffer_container<heffte_complex>>(fft->size_workspace());
