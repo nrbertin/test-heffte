@@ -1,0 +1,3 @@
+[submodule "heffte"]
+	path = heffte
+	url = https://github.com/icl-utk-edu/heffte.git
